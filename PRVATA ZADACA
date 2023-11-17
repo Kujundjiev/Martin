@@ -1,0 +1,105 @@
+Креирајте класа Vraboten:
+
+public class Vraboten {
+    private int ID;
+    private String ime;
+    private String prezime;
+    private int rabotni_casovi;
+    private double koeficient;
+    private double cena_cas;
+    private double bonusi;
+
+    // Конструктор со аргументи
+    public Vraboten(int ID, String ime, String prezime, int rabotni_casovi, double koeficient, double cena_cas, double bonusi) {
+        this.ID = ID;
+        this.ime = ime;
+        this.prezime = prezime;
+        this.rabotni_casovi = rabotni_casovi;
+        this.koeficient = koeficient;
+        this.cena_cas = cena_cas;
+        this.bonusi = bonusi;
+    }
+
+    // Методи за оставување и враќање вредности за атрибутите
+    public int getID() {
+        return ID;
+    }
+
+    public String getIme() {
+        return ime;
+    }
+
+    public String getPrezime() {
+        return prezime;
+    }
+
+    public int getRabotni_casovi() {
+        return rabotni_casovi;
+    }
+
+    public double getKoeficient() {
+        return koeficient;
+    }
+
+    public double getCena_cas() {
+        return cena_cas;
+    }
+
+    public double getBonusi() {
+        return bonusi;
+    }
+
+    // Метод за пресметување на плата
+    public double plata() {
+        return rabotni_casovi * koeficient * cena_cas + bonusi;
+    }
+}
+
+2.Креирајте класа VrabotenOpredeleno која ја наследува класата Vraboten:
+
+public class VrabotenOpredeleno extends Vraboten {
+    private double odbitoci;
+
+    // Конструктор со аргументи
+    public VrabotenOpredeleno(int ID, String ime, String prezime, int rabotni_casovi, double koeficient, double cena_cas, double bonusi, double odbitoci) {
+        super(ID, ime, prezime, rabotni_casovi, koeficient, cena_cas, bonusi);
+        this.odbitoci = odbitoci;
+    }
+
+    // Метод за пресметување на плата
+    @Override
+    public double plata() {
+        return getRabotni_casovi() * getKoeficient() * getCena_cas() - odbitoci;
+    }
+}
+
+3. Во главната програма, креирајте објекти од класата VrabotenOpredeleno, сочувајте ги во низа и најдете го вработениот со најголема плата:
+
+public class Main {
+    public static void main(String[] args) {
+        // Креирање на објекти од класата VrabotenOpredeleno
+        VrabotenOpredeleno vraboten1 = new VrabotenOpredeleno(1, "Име1", "Презиме1", 40, 10.0, 100.0, 50.0, 20.0);
+        VrabotenOpredeleno vraboten2 = new VrabotenOpredeleno(2, "Име2", "Презиме2", 35, 12.0, 120.0, 40.0, 15.0);
+        VrabotenOpredeleno vraboten3 = new VrabotenOpredeleno(3, "Име3", "Презиме3", 45, 8.0, 80.0, 60.0, 25.0);
+
+        // Ставање на објектите во низа
+        VrabotenOpredeleno[] vraboteni = {vraboten1, vraboten2, vraboten3};
+
+        // Пронаоѓање на вработениот со најголема плата
+        VrabotenOpredeleno najgolemaPlataVraboten = vraboteni[0];
+        for (VrabotenOpredeleno vraboten : vraboteni) {
+            if (vraboten.plata() > najgolemaPlataVraboten.plata()) {
+                najgolemaPlataVraboten = vraboten;
+            }
+        }
+
+        // Печатење на информации за вработениот со најголема плата
+        System.out.println("Информации за вработениот со најголема плата:");
+        System.out.println("ID: " + najgolemaPlataVraboten.getID());
+        System.out.println("Име: " + najgolemaPlataVraboten.getIme());
+        System.out.println("Презиме: " + najgolemaPlataVraboten.getPrezime());
+        System.out.println("Плата: " + najgolemaPlataVraboten.plata());
+    }
+}
+
+
