@@ -1,0 +1,78 @@
+TCP Сервер:
+import java.io.*;
+import java.net.*;
+
+public class TCPServer {
+    public static void main(String[] args) {
+        try {
+            ServerSocket serverSocket = new ServerSocket(9999);
+            System.out.println("Серверот е активен и чека конекции...");
+
+            while (true) {
+                Socket clientSocket = serverSocket.accept();
+                System.out.println("Клиентот се конектира...");
+
+                BufferedReader reader = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
+                PrintWriter writer = new PrintWriter(clientSocket.getOutputStream(), true);
+
+                String clientMessage = reader.readLine();
+                System.out.println("Порака од клиентот: " + clientMessage);
+
+                if (clientMessage.matches("[a-zA-Z]+")) {
+                    if (hasAlternatingCase(clientMessage)) {
+                        writer.println("Poraka so naizmenicni karakteri");
+                    } else {
+                        writer.println("Vnesete druga poraka");
+                    }
+                } else {
+                    if (clientMessage.length() >= 4 && clientMessage.matches("[0-9]+")) {
+                        writer.println("Porakata e primena");
+                    } else {
+                        writer.println("Neocekuvana poraka");
+                    }
+                }
+
+                clientSocket.close();
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private static boolean hasAlternatingCase(String message) {
+        for (int i = 0; i < message.length() - 1; i++) {
+            char current = message.charAt(i);
+            char next = message.charAt(i + 1);
+            if (Character.isLowerCase(current) == Character.isLowerCase(next)) {
+                return false;
+            }
+        }
+        return true;
+    }
+}
+
+TCP Клиент:
+import java.io.*;
+import java.net.*;
+
+public class TCPClient {
+    public static void main(String[] args) {
+        try {
+            Socket socket = new Socket("localhost", 9999);
+            BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
+            PrintWriter writer = new PrintWriter(socket.getOutputStream(), true);
+            BufferedReader serverReader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+
+            System.out.println("Внесете порака: ");
+            String message = reader.readLine();
+            writer.println(message);
+
+            String serverResponse = serverReader.readLine();
+            System.out.println("Од серверот: " + serverResponse);
+
+            socket.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+}
