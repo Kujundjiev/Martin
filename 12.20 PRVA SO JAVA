@@ -1,0 +1,91 @@
+UDP сервер:
+
+import java.io.IOException;
+import java.net.DatagramPacket;
+import java.net.DatagramSocket;
+
+public class UDPServer {
+    public static void main(String[] args) {
+        DatagramSocket socket = null;
+        try {
+            socket = new DatagramSocket(4223);
+
+            byte[] receiveData = new byte[1024];
+            DatagramPacket receivePacket = new DatagramPacket(receiveData, receiveData.length);
+
+            socket.receive(receivePacket);
+            String data = new String(receivePacket.getData(), 0, receivePacket.getLength());
+
+            String[] points = data.split("/");
+            int totalPoints = 0;
+            for (String point : points) {
+                totalPoints += Integer.parseInt(point);
+            }
+
+            String response;
+            if (totalPoints > 51) {
+                response = "Go polozivte ispitot po NP";
+            } else {
+                response = "Ne go polozivte ispitot po NP";
+            }
+
+            DatagramPacket sendPacket = new DatagramPacket(
+                    response.getBytes(),
+                    response.getBytes().length,
+                    receivePacket.getAddress(),
+                    receivePacket.getPort()
+            );
+            socket.send(sendPacket);
+        } catch (IOException e) {
+            e.printStackTrace();
+        } finally {
+            if (socket != null) {
+                socket.close();
+            }
+        }
+    }
+}
+
+
+
+UDP клиент: 
+
+import java.io.IOException;
+import java.net.DatagramPacket;
+import java.net.DatagramSocket;
+import java.net.InetAddress;
+
+public class UDPClient {
+    public static void main(String[] args) {
+        DatagramSocket socket = null;
+        try {
+            socket = new DatagramSocket();
+
+            String message = "10/12/15/8/9/14"; // Пример на поени
+
+            byte[] sendData = message.getBytes();
+            InetAddress serverAddress = InetAddress.getByName("127.0.0.1"); // Локална адреса
+            DatagramPacket sendPacket = new DatagramPacket(
+                    sendData,
+                    sendData.length,
+                    serverAddress,
+                    4223
+            );
+            socket.send(sendPacket);
+
+            byte[] receiveData = new byte[1024];
+            DatagramPacket receivePacket = new DatagramPacket(receiveData, receiveData.length);
+            socket.receive(receivePacket);
+
+            String response = new String(receivePacket.getData(), 0, receivePacket.getLength());
+            System.out.println("Server response: " + response);
+        } catch (IOException e) {
+            e.printStackTrace();
+        } finally {
+            if (socket != null) {
+                socket.close();
+            }
+        }
+    }
+}
+
