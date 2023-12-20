@@ -1,0 +1,111 @@
+UDP сервер:
+
+import java.io.IOException;
+import java.net.DatagramPacket;
+import java.net.DatagramSocket;
+
+public class UDPServer {
+    public static void main(String[] args) {
+        DatagramSocket socket = null;
+
+        try {
+            socket = new DatagramSocket(4322);
+
+            byte[] receiveData = new byte[1024];
+            DatagramPacket receivePacket = new DatagramPacket(receiveData, receiveData.length);
+
+            socket.receive(receivePacket);
+            String data = new String(receivePacket.getData(), 0, receivePacket.getLength());
+            String[] parts = data.split("/");
+
+            if (parts.length != 3) {
+                throw new IllegalArgumentException("Vnesete validna poraka povtorno");
+            }
+
+            String originalString = parts[0];
+            String podstring = parts[1];
+            String drugOriginalString = parts[2];
+
+            String response;
+            if (originalString.contains(podstring) && drugOriginalString.contains(podstring)) {
+                if (originalString.contains(drugOriginalString)) {
+                    response = "Podstring na dvata stringa e = " + podstring;
+                } else {
+                    if (podstring.equals(originalString)) {
+                        response = "Originalen String1";
+                    } else {
+                        response = "Drug Originalen String 2";
+                    }
+                }
+            } else {
+                throw new IllegalArgumentException("Nepoznat izvor");
+            }
+
+            DatagramPacket sendPacket = new DatagramPacket(
+                    response.getBytes(),
+                    response.getBytes().length,
+                    receivePacket.getAddress(),
+                    receivePacket.getPort()
+            );
+            socket.send(sendPacket);
+
+        } catch (IOException | IllegalArgumentException e) {
+            e.printStackTrace();
+        } finally {
+            if (socket != null && !socket.isClosed()) {
+                socket.close();
+            }
+        }
+    }
+}
+
+
+
+UDP client:
+
+import java.io.IOException;
+import java.net.DatagramPacket;
+import java.net.DatagramSocket;
+import java.net.InetAddress;
+import java.util.Scanner;
+
+public class UDPClient {
+    public static void main(String[] args) {
+        DatagramSocket socket = null;
+        Scanner scanner = new Scanner(System.in);
+
+        try {
+            socket = new DatagramSocket();
+            socket.setSoTimeout(5000); // Максимално време на блокирање 5000 ms
+
+            System.out.print("Vnesete poraka vo format 'OriginalenString/Podstring/DrugOriginalenString': ");
+            String message = scanner.nextLine();
+
+            byte[] sendData = message.getBytes();
+            InetAddress serverAddress = InetAddress.getByName("127.0.0.1"); // Локална адреса
+            DatagramPacket sendPacket = new DatagramPacket(
+                    sendData,
+                    sendData.length,
+                    serverAddress,
+                    4322
+            );
+            socket.send(sendPacket);
+
+            byte[] receiveData = new byte[1024];
+            DatagramPacket receivePacket = new DatagramPacket(receiveData, receiveData.length);
+            socket.receive(receivePacket);
+
+            String response = new String(receivePacket.getData(), 0, receivePacket.getLength());
+            System.out.println("Server response: " + response);
+
+        } catch (IOException e) {
+            e.printStackTrace();
+        } finally {
+            if (socket != null && !socket.isClosed()) {
+                socket.close();
+            }
+            scanner.close();
+        }
+    }
+}
+
