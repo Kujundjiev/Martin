@@ -1,0 +1,39 @@
+Определување на серверската страна:
+
+python
+Copy code
+import socket
+
+server_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+server_address = ('127.0.0.1', 4223)
+server_socket.bind(server_address)
+
+while True:
+    data, client_address = server_socket.recvfrom(1024)
+    received_data = data.decode('utf-8').split('/')
+    total_points = sum(map(int, received_data))
+
+    if total_points > 51:
+        response = "Go polozivte ispitot po NP"
+    else:
+        response = "Ne go polozivte ispitot po NP"
+
+    server_socket.sendto(response.encode('utf-8'), client_address)
+Определување на клиентската страна:
+
+python
+Copy code
+import socket
+
+client_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+server_address = ('127.0.0.1', 4223)
+
+poeni = "15/10/12/8/14/20"  # Пример на внес на поени
+poeni_encoded = poeni.encode('utf-8')
+
+client_socket.sendto(poeni_encoded, server_address)
+
+response, _ = client_socket.recvfrom(1024)
+print(response.decode('utf-8'))
+
+client_socket.close()
