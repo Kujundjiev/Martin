@@ -1,0 +1,103 @@
+MQTTPublisher.java (Објавувач):
+
+import org.eclipse.paho.client.mqttv3.MqttClient;
+import org.eclipse.paho.client.mqttv3.MqttException;
+import org.eclipse.paho.client.mqttv3.MqttMessage;
+
+public class MQTTPublisher {
+    public static void main(String[] args) {
+        String broker = "mqtt://<вашата HiveMQ Cloud бројка>";
+        String clientId = "publisher";
+        String topic = "brzinainfo";
+
+        try {
+            MqttClient client = new MqttClient(broker, clientId);
+            client.connect();
+
+            for (int i = 0; i < 10; i++) {
+                int speed = (int) (Math.random() * 100) + 1;
+                String message = "Brzina: " + speed + " km/h";
+                MqttMessage mqttMessage = new MqttMessage(message.getBytes());
+                client.publish(topic, mqttMessage);
+                Thread.sleep(1000); // Почекајте 1 секунда пред да испратите следната порака
+            }
+
+            client.disconnect();
+        } catch (MqttException | InterruptedException e) {
+            e.printStackTrace();
+        }
+    }
+}
+
+
+MQTTSubscriber.java (Претплатник):
+
+import org.eclipse.paho.client.mqttv3.MqttCallback;
+import org.eclipse.paho.client.mqttv3.MqttClient;
+import org.eclipse.paho.client.mqttv3.MqttConnectOptions;
+import org.eclipse.paho.client.mqttv3.MqttException;
+import org.eclipse.paho.client.mqttv3.MqttMessage;
+
+public class MQTTSubscriber {
+    public static void main(String[] args) {
+        String broker = "mqtt://<вашата HiveMQ Cloud бројка>";
+        String clientId = "subscriber";
+        String topic = "brzina";
+
+        try {
+            MqttClient client = new MqttClient(broker, clientId);
+            MqttConnectOptions options = new MqttConnectOptions();
+            options.setCleanSession(true);
+
+            client.setCallback(new MqttCallback() {
+                @Override
+                public void connectionLost(Throwable cause) {
+                    cause.printStackTrace();
+                }
+
+                @Override
+                public void messageArrived(String topic, MqttMessage message) {
+                    String payload = new String(message.getPayload());
+                    int speed = Integer.parseInt(payload.split(" ")[1]);
+
+                    try {
+                        if (speed > 130) {
+                            sendMessageToPublisher("Ve molime namalete ja brzinata");
+                        } else if (speed < 35) {
+                            sendMessageToPublisher("Ve molime vozete pobrzo");
+                        }
+                    } catch (MqttException e) {
+                        e.printStackTrace();
+                    }
+                }
+
+                @Override
+                public void deliveryComplete(IMqttDeliveryToken token) {
+                }
+            });
+
+            client.connect(options);
+            client.subscribe(topic);
+
+            // Нека чека бесконечно додека претплатникот прима пораки
+            while (true) {
+            }
+        } catch (MqttException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private static void sendMessageToPublisher(String message) throws MqttException {
+        String broker = "mqtt://<вашата HiveMQ Cloud бројка>";
+        String clientId = "subscriber";
+        String topic = "brzinainfo";
+
+        MqttClient client = new MqttClient(broker, clientId);
+        client.connect();
+
+        MqttMessage mqttMessage = new MqttMessage(message.getBytes());
+        client.publish(topic, mqttMessage);
+
+        client.disconnect();
+    }
+}
