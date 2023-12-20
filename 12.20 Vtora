@@ -1,0 +1,55 @@
+UDP сервер:
+
+import socket
+
+server_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+server_address = ('127.0.0.1', 4322)
+server_socket.bind(server_address)
+server_socket.settimeout(5.0)  # Поставување на времето за блокирање на 5 секунди
+
+while True:
+    try:
+        data, client_address = server_socket.recvfrom(1024)
+        received_data = data.decode('utf-8').split('/')
+        
+        if len(received_data) != 3:
+            raise ValueError("Vnesete validna poraka povtorno")
+
+        original_string, podstring, drug_original_string = received_data
+
+        if podstring in original_string and podstring in drug_original_string:
+            response = "Podstring na dvata stringa e = {}".format(podstring)
+        elif podstring in original_string:
+            response = "Originalen String 1"
+        elif podstring in drug_original_string:
+            response = "Drug Originalen String 2"
+        else:
+            raise ValueError("Nepoznat izvor")
+
+        server_socket.sendto(response.encode('utf-8'), client_address)
+
+    except ValueError as ve:
+        print(ve)
+    except socket.timeout:
+        print("Vremeto isteče. Nema podatoci od klientot.")
+
+
+UDP клиент:
+
+python
+import socket
+
+client_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+server_address = ('127.0.0.1', 4322)
+
+while True:
+    try:
+        message = input("Vnesete poraka vo format OriginalenString/Podstring/DrugOriginalenString: ")
+        client_socket.sendto(message.encode('utf-8'), server_address)
+
+        response, _ = client_socket.recvfrom(1024)
+        print(response.decode('utf-8'))
+        break  # Завршување на циклусот ако нема исклучок
+
+    except ValueError as ve:
+        print(ve)
